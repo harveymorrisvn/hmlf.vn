@@ -1,4 +1,4 @@
-name: Deploy New Folder
+name: Deploy Folders in wp-content/uploads/2023
 
 on:
   push:
@@ -13,17 +13,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Detect newly added folders in wp-content/uploads
+      - name: Detect changes in wp-content/uploads/2023
         id: detect
         run: |
-          # Detect changes in wp-content/uploads/
-          NEW_FOLDER=$(git diff --name-only HEAD~1 HEAD | grep '^wp-content/uploads/' | grep '/$' | awk -F'/' '{print $4}' | uniq)
-          echo "new_folder=$NEW_FOLDER" >> $GITHUB_ENV
+          # Detect changes in the wp-content/uploads/2023 directory
+          CHANGED_FOLDERS=$(git diff --name-only HEAD~1 HEAD | grep '^wp-content/uploads/2023/' | cut -d'/' -f5 | sort | uniq)
+          echo "changed_folders=$CHANGED_FOLDERS" >> $GITHUB_ENV
 
-      - name: Deploy new folder
-        if: env.new_folder
+      - name: Show changed folders
         run: |
-          echo "Deploying folder: wp-content/uploads/$new_folder"
-          # Replace with your actual deployment logic
-          # Example using rsync:
-          rsync -av wp-content/uploads/$new_folder/ <your-deploy-server>:/path/to/uploads/$new_folder/
+          echo "Changed folders: ${{ env.changed_folders }}"
+
+      - name: Deploy changed folders
+        if: env.changed_folders
+        run: |
+          for folder in $CHANGED_FOLDERS; do
+            echo "Deploying folder: wp-content/uploads/2023/$folder"
+            # Replace the following line with your actual deployment logic
+            # Example using rsync:
+            rsync -av wp-content/uploads/2023/$folder/ <your-deploy-server>:/path/to/uploads/2023/$folder/
+          done
