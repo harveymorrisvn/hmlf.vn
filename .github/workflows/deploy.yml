@@ -1,0 +1,29 @@
+name: Deploy New Folder
+
+on:
+  push:
+    branches:
+      - main  # Thay bằng nhánh mặc định của bạn
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Detect newly added folders in wp-content/uploads
+        id: detect
+        run: |
+          # Detect changes in wp-content/uploads/
+          NEW_FOLDER=$(git diff --name-only HEAD~1 HEAD | grep '^wp-content/uploads/' | grep '/$' | awk -F'/' '{print $4}' | uniq)
+          echo "new_folder=$NEW_FOLDER" >> $GITHUB_ENV
+
+      - name: Deploy new folder
+        if: env.new_folder
+        run: |
+          echo "Deploying folder: wp-content/uploads/$new_folder"
+          # Replace with your actual deployment logic
+          # Example using rsync:
+          rsync -av wp-content/uploads/$new_folder/ <your-deploy-server>:/path/to/uploads/$new_folder/
